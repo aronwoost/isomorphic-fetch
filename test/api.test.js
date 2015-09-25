@@ -16,6 +16,12 @@ function responseToText(response) {
 describe('fetch', function() {
 
 	before(function() {
+		global.defaultProtocol = "https://";
+		global.defaultHostname = "mattandre.ws";
+
+		nock('https://mattandre.ws')
+			.get('/succeed.txt')
+			.reply(200, good);
 		nock('https://mattandre.ws')
 			.get('/succeed.txt')
 			.reply(200, good);
@@ -29,7 +35,17 @@ describe('fetch', function() {
 	});
 
 	it('should facilitate the making of requests', function(done) {
-		fetch('//mattandre.ws/succeed.txt')
+		fetch('https://mattandre.ws/succeed.txt')
+			.then(responseToText)
+			.then(function(data) {
+				expect(data).to.equal(good);
+				done();
+			})
+			.catch(done);
+	});
+
+	it('should support protocol and host less domain', function(done) {
+		fetch('/succeed.txt')
 			.then(responseToText)
 			.then(function(data) {
 				expect(data).to.equal(good);
@@ -39,7 +55,7 @@ describe('fetch', function() {
 	});
 
 	it('should do the right thing with bad requests', function(done) {
-		fetch('//mattandre.ws/fail.txt')
+		fetch('https://mattandre.ws/fail.txt')
 			.then(responseToText)
 			.catch(function(err) {
 				expect(err.toString()).to.equal("Error: Bad server response");
